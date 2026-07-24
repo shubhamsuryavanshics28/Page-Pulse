@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Pulse</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+  :root {
+    --ink: #1c1c1e;
+    --muted: #6b6b70;
+    --border: #e4e4e7;
+    --bg: #fafafa;
+    --accent: #2f6f4f;
+    --danger: #b3261e;
+    --card: #ffffff;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 40px 20px;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  p.subtitle {
+    color: var(--muted);
+    margin-top: 0;
+    margin-bottom: 28px;
+    font-size: 14px;
+  }
+
+  form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+  }
+
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    background: #a9c7b8;
+    cursor: not-allowed;
+  }
+
+  #status {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    min-height: 20px;
+  }
+
+  #status.error {
+    color: var(--danger);
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    gap: 16px;
+  }
+
+  .row:last-child { border-bottom: none; }
+
+  .row .label {
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .row .value {
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .flag {
+    color: var(--danger);
+    font-weight: 500;
+  }
+
+  footer {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  footer a {
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Page Pulse</h1>
+    <p class="subtitle">Paste any URL to get a quick audit: status, speed, title, meta description, headings, alt-text gaps, and word count.</p>
+
+    <form id="audit-form">
+      <input type="text" id="url-input" placeholder="https://example.com" autocomplete="off" required>
+      <button type="submit" id="submit-btn">Run Audit</button>
+    </form>
+
+    <div id="status"></div>
+
+    <div class="card" id="report-card"></div>
+
+    <footer>
+      Built for Digital Heroes Training Task ·
+      <a href="https://digitalheroesco.com" target="_blank" rel="noopener">digitalheroesco.com</a>
+    </footer>
+  </div>
+
+<script>
+  const form = document.getElementById('audit-form');
+  const input = document.getElementById('url-input');
+  const statusEl = document.getElementById('status');
+  const card = document.getElementById('report-card');
+  const btn = document.getElementById('submit-btn');
+
+  function row(label, value, flagged = false) {
+    return `<div class="row"><span class="label">${label}</span><span class="value ${flagged ? 'flag' : ''}">${value}</span></div>`;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = input.value.trim();
+    card.style.display = 'none';
+    card.innerHTML = '';
+    statusEl.className = '';
+    statusEl.textContent = 'Fetching and analyzing…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        statusEl.className = 'error';
+        statusEl.textContent = data.detail || 'Something went wrong.';
+        return;
+      }
+
+      statusEl.textContent = '';
+      card.innerHTML =
+        row('URL', data.url) +
+        row('HTTP status', data.http_status) +
+        row('Response time', data.response_time_ms + ' ms') +
+        row('Title', data.title || '(missing)', !data.title) +
+        row('Meta description', data.meta_description || '(missing)', !data.meta_description) +
+        row('H1 count', data.h1_count, data.h1_count !== 1) +
+        row('Images without alt text', `${data.images_missing_alt} / ${data.images_total}`, data.images_missing_alt > 0) +
+        row('Approx. word count', data.word_count);
+      card.style.display = 'block';
+    } catch (err) {
+      statusEl.className = 'error';
+      statusEl.textContent = 'Network error — the server may be unreachable.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
