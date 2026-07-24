@@ -6,7 +6,7 @@ description, H1 count, images missing alt text, and approximate word count.
 Built for the Digital Heroes SDE internship task kit (Task A + Task B).
 
 **Live:** https://page-pulse-b96u.onrender.com
-
+.
 ---
 
 ## Setup
