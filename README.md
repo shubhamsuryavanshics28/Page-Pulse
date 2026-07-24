@@ -5,6 +5,12 @@ description, H1 count, images missing alt text, and approximate word count.
 
 Built for the Digital Heroes SDE internship task kit (Task A + Task B).
 
+**Live:** https://page-pulse-b96u.onrender.com
+
+> Note: this is deployed on Render's free tier, which spins down after a
+> period of inactivity. If it's been idle, the first request can take
+> 30-50 seconds to wake back up — that's expected, not a bug.
+
 ---
 
 ## Setup
@@ -117,23 +123,24 @@ I used Claude to scaffold the initial FastAPI backend, the frontend, and
 the first draft of the test suite, since I hadn't built a FastAPI project
 from scratch before and wanted to move fast on structure.
 
-From there, the debugging was mine. Setting it up locally on Fedora surfaced
-a real dependency issue — `pydantic-core`'s pinned version tried to compile
-from Rust source and failed because my system Python (3.14) was newer than
-what that version supported. I fixed it by unpinning the exact versions in
-`requirements.txt` so pip could pull wheels that actually support my Python
-version.
+From there, the debugging was mine. Setting it up locally on Fedora
+surfaced a real dependency issue — `pydantic-core`'s pinned version tried
+to compile from Rust source and failed because my system Python (3.14)
+was newer than what that version supported. I fixed it by unpinning the
+exact versions in `requirements.txt` so pip could pull wheels that
+actually support my Python version.
 
 That same environment change then broke one of the tests
-(`test_failure_case_malformed_html_and_script_noise`) — a newer BeautifulSoup
-version handled an unclosed `<title>` tag differently than the version the
-test was written against, treating everything after it as raw text instead
-of parsing the nested tags. I diagnosed that it was a parser-behavior
-difference and not a bug in `analyze_html()`, and rewrote the test to check
-the thing that actually mattered (recovery from an unclosed `<h1>`) instead
-of relying on undefined behavior around a malformed `<title>`.
+(`test_failure_case_malformed_html_and_script_noise`) — a newer
+BeautifulSoup version handled an unclosed `<title>` tag differently than
+the version the test was originally written against, treating everything
+after it as raw text instead of parsing the nested tags. I diagnosed that
+this was a parser-behavior difference and not a bug in `analyze_html()`,
+and rewrote the test to check the thing that actually mattered (recovery
+from an unclosed `<h1>`) instead of relying on undefined behavior around
+a malformed `<title>`.
 
-I also pushed the repo to GitHub myself, set up my git identity, and
-deployed it — none of that was AI-generated, just me running the commands
-and fixing the auth/config issues as they came up.
-
+I also set up git, created the GitHub repo, pushed the code myself, and
+deployed it to Render — none of that was AI-generated, just me running
+the commands and fixing the auth/config/build issues as they came up
+along the way.
