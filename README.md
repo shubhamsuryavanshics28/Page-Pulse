@@ -7,10 +7,6 @@ Built for the Digital Heroes SDE internship task kit (Task A + Task B).
 
 **Live:** https://page-pulse-b96u.onrender.com
 
-> Note: this is deployed on Render's free tier, which spins down after a
-> period of inactivity. If it's been idle, the first request can take
-> 30-50 seconds to wake back up — that's expected, not a bug.
-
 ---
 
 ## Setup
